@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Type Pairing Instrument — Combined</title>
+<style>
+@font-face{font-family:FiraCode;src:url("fonts/FiraCode-VariableFont_wght.ttf") format("truetype");font-weight:300 700}
+@font-face{font-family:OverpassMono;src:url("fonts/OverpassMono-VariableFont_wght.ttf") format("truetype");font-weight:300 700}
+@font-face{font-family:XanhMono;src:url("fonts/XanhMono-Regular.ttf") format("truetype");font-weight:400}
+:root{
+ --bg:#070707;--fg:#f1eee6;--muted:#929088;--line:#4d4b46;--line2:#292825;
+ --active:#f1eee6;--panel:#0d0d0c;--panel2:#111110;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--fg)}
+body{font-family:OverpassMono,monospace}
+button,input,select,textarea{font:inherit}
+button{color:inherit}
+main{padding:24px 30px 48px;max-width:1500px;margin:auto}
+header{
+ border:1px solid var(--line);padding:12px 15px;display:flex;
+ justify-content:space-between;align-items:center;gap:20px
+}
+header b{font-weight:400;font-size:11px;letter-spacing:.06em}
+.note{color:var(--muted);font-size:9px}
+.levelbar{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:12px 0 7px}
+.levelbar .title{font-size:7px;color:var(--muted);letter-spacing:.1em;margin-right:4px}
+.levelbar button{
+ min-width:35px;border:1px solid var(--line);background:transparent;
+ padding:7px 9px;font-size:8px;cursor:pointer
+}
+.levelbar button.active{background:var(--active);color:#111;border-color:var(--active)}
+.control-strip{
+ display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+ border:1px solid var(--line);padding:9px;background:#0b0b0b
+}
+.control-strip .brand{font-size:8px;color:var(--fg);letter-spacing:.1em;margin-right:3px}
+.control-strip label,.micro{font-size:7px;color:var(--muted)}
+.inline-field{display:flex;align-items:center;gap:4px}
+.inline-field select,.inline-field input[type=text],.inline-field input[type=search]{
+ background:#111;border:1px solid var(--line);color:var(--fg);padding:7px;
+ font-size:8px;outline:0
+}
+.inline-field input[type=text]{width:155px}.inline-field input[type=search]{width:145px}
+.control-strip input[type=range]{width:85px;accent-color:var(--fg)}
+.control-strip output{font-size:8px;color:var(--fg)}
+.tool-btn,.tool-icon,.filter-btn{
+ height:29px;background:#111;border:1px solid var(--line);
+ color:var(--fg);cursor:pointer;font-size:8px
+}
+.tool-btn{padding:0 9px}.tool-icon{width:29px;padding:0;font-size:12px}
+.filter-btn{height:25px;padding:0 7px;font-size:7px}
+.tool-btn.active,.tool-icon.active,.filter-btn.active{
+ background:var(--fg);color:#111;border-color:var(--fg)
+}
+.button-set{display:flex;gap:2px}
+.score{border-left:1px solid var(--line);padding-left:8px;display:flex;align-items:center;gap:6px}
+.score span{font-size:7px;color:var(--muted)}.score strong{font-size:14px;font-weight:400}
+.search-wrap{position:relative}
+.font-results{
+ display:none;position:absolute;z-index:40;top:100%;left:0;width:255px;
+ max-height:260px;overflow:auto;background:#0e0e0d;border:1px solid var(--line)
+}
+.font-results.open{display:block}
+.font-result{padding:8px;border-bottom:1px solid var(--line2);cursor:pointer}
+.font-result:hover{background:#171715}
+.font-result-name{font-size:10px;color:var(--fg)}
+.font-result-meta{font-size:7px;color:var(--muted);margin-top:3px}
+.font-filters{display:flex;gap:2px}
+.editor{border-top:1px solid var(--line2);padding-top:28px}
+.heading-edit{
+ width:100%;background:transparent;border:0;border-bottom:1px dashed var(--line2);
+ color:var(--fg);outline:0;font-size:10px;padding:0 0 18px
+}
+.display{margin:24px 0 30px;overflow-wrap:anywhere}
+.body-edit{
+ width:100%;min-height:86px;resize:vertical;background:transparent;
+ border:0;border-bottom:1px dashed var(--line2);color:var(--fg);outline:0;
+ padding:0 0 15px;font-size:12px;line-height:1.45
+}
+.body-preview{max-width:72ch;margin:20px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.hierarchy{
+ display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:14px;
+ margin-top:42px;border-top:1px solid var(--line2);padding-top:18px
+}
+.h-card{min-width:0;transition:opacity .12s ease}
+.h-label{font-size:9px;color:var(--muted);margin-bottom:8px}
+.h-text{margin:0;overflow-wrap:anywhere}
+.h1{font-size:clamp(42px,5vw,76px)}.h2{font-size:clamp(34px,4vw,60px)}
+.h3{font-size:clamp(28px,3vw,48px)}.h4{font-size:36px}.h5{font-size:28px}.h6{font-size:21px}.h7{font-size:15px}
+.info{display:flex;justify-content:space-between;gap:20px;margin-top:30px;padding-top:10px;border-top:1px solid var(--line2);font-size:8px;color:var(--muted)}
+mark,.insight-mark{background:var(--fg);color:#111;padding:1px 3px}
+.rtl{direction:rtl}.context-tight{max-width:44ch!important}
+.style-controls{display:flex;gap:3px}.style-btn{min-width:35px;padding:6px 7px;border:1px solid var(--line);background:#111;color:var(--fg);font-size:7px;cursor:pointer}.style-btn.active{background:var(--fg);color:#111}
+.axis{display:none;gap:5px;align-items:center}.axis.visible{display:flex}.axis input{width:70px;accent-color:var(--fg)}
+.font-library{margin-top:42px;border-top:1px solid var(--line);padding:18px 0 7px}
+.font-library-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+.font-library-title{font-size:9px;letter-spacing:.1em}.font-library-description{font-size:8px;color:var(--muted);margin-top:5px}
+.font-library-count{font-size:7px;color:var(--muted)}
+.font-library-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}
+.font-dropzone,.font-linkbox{border:1px solid var(--line);background:#0b0b0a;padding:12px;min-height:86px}
+.font-dropzone{display:flex;align-items:center;gap:10px}.font-dropzone.dragover{border-color:var(--fg);background:#111}
+.drop-icon{width:28px;height:28px;border:1px solid var(--line);display:grid;place-items:center;font-size:13px}
+.drop-copy{display:flex;flex-direction:column;gap:4px;min-width:0}.drop-copy strong{font-size:8px;font-weight:400;letter-spacing:.08em}.drop-copy span{font-size:7px;color:var(--muted);line-height:1.4}
+.font-library-button{
+ background:transparent;border:1px solid var(--line);color:var(--fg);
+ padding:8px 10px;font-size:8px;cursor:pointer;white-space:nowrap
+}
+.font-library-button:hover,.font-library-button:focus{border-color:var(--fg);outline:none}
+.font-dropzone .font-library-button{margin-left:auto}
+.font-linkbox{display:flex;flex-direction:column;justify-content:space-between;gap:10px}
+.font-link-controls{display:flex;gap:6px}.font-link-controls input{flex:1;min-width:0;background:#111;border:1px solid var(--line);color:var(--fg);padding:8px;font-size:8px;outline:0}
+.font-sources{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.font-sources-head{display:flex;justify-content:space-between;gap:10px;font-size:7px;color:var(--muted);margin-bottom:7px}
+.font-source-list{border:1px solid var(--line);background:#0b0b0a;max-height:180px;overflow:auto}
+.font-source{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border-bottom:1px solid var(--line2)}
+.font-source:last-child{border-bottom:0}.font-source-main{min-width:0}
+.font-source-name{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.font-source-meta{font-size:7px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.font-source-preview{font-size:13px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.font-remove{background:transparent;border:0;color:var(--muted);font-size:11px;cursor:pointer;padding:5px}.font-remove:hover{color:var(--fg)}
+.control-tip{position:fixed;z-index:9999;pointer-events:none;width:245px;padding:11px 12px;background:#111;color:#f1eee6;border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.35);opacity:0;transform:translateY(4px);transition:opacity .12s ease,transform .12s ease}
+.control-tip.show{opacity:1;transform:translateY(0)}.tip-name{font-size:9px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px}.tip-desc{font-size:8px;line-height:1.5;color:#a09e97}
+@media(max-width:1100px){.hierarchy{grid-template-columns:repeat(4,1fr)}.font-library-inputs{grid-template-columns:1fr}.score{border-left:0;padding-left:0}}
+@media(max-width:700px){main{padding:18px}.hierarchy{grid-template-columns:repeat(2,1fr)}.control-strip{align-items:stretch}.font-dropzone{display:grid;grid-template-columns:auto 1fr}.font-dropzone .font-library-button{margin-left:0}.font-link-controls{display:grid;grid-template-columns:1fr}.font-library-header{display:block}}
+
+body{transition:background-color .16s ease,color .16s ease}
+[data-theme="light"]{--bg:#f5f3ed;--fg:#11110f;--muted:#6f6d67;--line:#a8a59c;--line2:#d9d6cd;--active:#11110f;--panel:#eeece5;--panel2:#e5e2da}
+[data-theme="light"] .control-strip,[data-theme="light"] .font-dropzone,[data-theme="light"] .font-linkbox,[data-theme="light"] .font-source-list{background:#eeece5}
+[data-theme="light"] .inline-field select,[data-theme="light"] .inline-field input[type=text],[data-theme="light"] .inline-field input[type=search],
+[data-theme="light"] .control-strip button,[data-theme="light"] .font-library-button,[data-theme="light"] .font-link-controls input{background:#e5e2da;color:var(--fg)}
+[data-theme="light"] .font-results{background:#eeece5;color:var(--fg)}
+[data-theme="light"] .font-result:hover{background:#dedbd2}
+[data-theme="light"] .control-tip{background:#111;color:#f1eee6;border-color:#30302d}
+.theme-switch{display:flex;align-items:center;gap:7px;margin-left:auto}
+.theme-label{font-size:7px;color:var(--muted);letter-spacing:.08em}
+.theme-toggle{position:relative;width:54px;height:28px;border:1px solid var(--line);background:transparent;color:var(--fg);padding:0;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0 7px}
+.theme-toggle .theme-track{position:absolute;inset:3px;border:1px solid var(--line2);pointer-events:none}
+.theme-toggle .theme-icon{position:relative;z-index:1;font-size:10px;line-height:1}
+.theme-toggle .theme-thumb{position:absolute;top:3px;left:3px;width:20px;height:20px;background:var(--fg);transition:transform .14s ease;z-index:0}
+[data-theme="light"] .theme-toggle .theme-thumb{transform:translateX(25px)}
+</style>
+</head>
+<body>
+<div id="controlTip" class="control-tip" role="tooltip"><div class="tip-name"></div><div class="tip-desc"></div></div>
+<main>
+<header>
+  <b>TYPE SYSTEM / PAIRING INSTRUMENT</b>
+  <div class="theme-switch">
+    <span class="note" id="fontStatus">Fira Code · Overpass Mono · Xanh Mono</span>
+    <span class="theme-label">THEME</span>
+    <button id="themeToggle" class="theme-toggle" type="button" aria-label="Switch between dark mode and light mode" aria-pressed="false" data-tip="Light / dark mode" data-desc="Switches the instrument between the dark working environment and a light paper-like environment.">
+      <span class="theme-track"></span><span class="theme-icon">☾</span><span class="theme-icon">☀</span><span class="theme-thumb"></span>
+    </button>
+  </div>
+</header>
+
+<nav class="levelbar" aria-label="H1 through H7 hierarchy">
+  <span class="title">HIERARCHY</span>
+  <button class="active" data-level="H1">H1</button><button data-level="H2">H2</button><button data-level="H3">H3</button>
+  <button data-level="H4">H4</button><button data-level="H5">H5</button><button data-level="H6">H6</button><button data-level="H7">H7</button>
+</nav>
+
+<div class="control-strip" aria-label="Typography controls">
+  <span class="brand">TYPE PAIRING</span>
+
+  <label class="inline-field">DISPLAY
+    <select id="displayFont" data-tip="Display typeface" data-desc="Sets the typeface used for headings and display hierarchy.">
+      <option value="Fira Code">Fira Code</option><option value="Overpass Mono">Overpass Mono</option><option value="Xanh Mono">Xanh Mono</option>
+      <option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Times New Roman">Times New Roman</option>
+      <option value="Courier New">Courier New</option><option value="Helvetica">Helvetica</option>
+    </select>
+  </label>
+
+  <label class="inline-field">TEXT
+    <select id="bodyFont" data-tip="Text typeface" data-desc="Sets the typeface used for paragraph and reading text.">
+      <option value="Xanh Mono">Xanh Mono</option><option value="Overpass Mono">Overpass Mono</option><option value="Fira Code">Fira Code</option>
+      <option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Times New Roman">Times New Roman</option>
+      <option value="Courier New">Courier New</option><option value="Helvetica">Helvetica</option>
+    </select>
+  </label>
+
+  <label class="inline-field search-wrap">SEARCH
+    <input id="fontSearch" type="search" placeholder="installed / available" data-tip="Font search" data-desc="Search the available font catalogue. In the native build this is populated from the computer's installed fonts.">
+    <div id="fontResults" class="font-results"></div>
+  </label>
+
+  <div class="font-filters">
+    <button class="filter-btn active" data-filter="all" data-tip="All fonts" data-desc="Show every font in the current font catalogue.">ALL</button>
+    <button class="filter-btn" data-filter="serif" data-tip="Serif filter" data-desc="Show typefaces classified as serif.">SERIF</button>
+    <button class="filter-btn" data-filter="sans" data-tip="Sans filter" data-desc="Show typefaces classified as sans serif.">SANS</button>
+    <button class="filter-btn" data-filter="mono" data-tip="Mono filter" data-desc="Show monospaced typefaces.">MONO</button>
+    <button class="filter-btn" data-filter="display" data-tip="Display filter" data-desc="Show display-oriented typefaces.">DISPLAY</button>
+  </div>
+
+  <label class="inline-field">PAIR
+    <select id="pairMode" data-tip="Pairing mode" data-desc="Apply a pairing strategy to quickly set a display/text relationship.">
+      <option value="manual">MANUAL</option><option value="contrast">HIGH CONTRAST</option><option value="mono">MONO + MONO</option><option value="same">SAME FAMILY</option>
+    </select>
+  </label>
+
+  <label class="inline-field">KERN <output id="kernValue">-3.0</output>
+    <input id="kern" type="range" min="-80" max="120" value="-30" data-tip="Kerning / tracking" data-desc="Adjusts the horizontal space between characters.">
+  </label>
+
+  <label class="inline-field">LEAD <output id="leadValue">1.00</output>
+    <input id="lead" type="range" min=".70" max="2.20" step=".01" value="1" data-tip="Leading" data-desc="Adjusts the vertical rhythm between lines.">
+  </label>
+
+  <button id="link" class="tool-btn active" data-tip="Link kerning + leading" data-desc="Links tracking and leading so changing one influences the other.">↔</button>
+  <button id="context" class="tool-btn" data-tip="Context break" data-desc="Tightens the paragraph measure to test how context changes reading rhythm.">◫</button>
+  <button id="hyphen" class="tool-btn" data-tip="Hyphenation" data-desc="Allows words to break at line endings to change paragraph texture.">—</button>
+
+  <div class="button-set">
+    <button class="tool-icon active" data-align="left" data-tip="Align left" data-desc="Left-align text with a ragged right edge.">≡</button>
+    <button class="tool-icon" data-align="center" data-tip="Align centre" data-desc="Centre text along a shared vertical axis.">≡</button>
+    <button class="tool-icon" data-align="right" data-tip="Align right" data-desc="Right-align text with a ragged left edge.">≡</button>
+    <button class="tool-icon" data-align="justify" data-tip="Justify" data-desc="Align both edges by distributing space across each line.">≡</button>
+  </div>
+
+  <div class="button-set">
+    <button class="tool-icon active" data-dir="ltr" data-tip="Left to right" data-desc="Test left-to-right reading direction.">→</button>
+    <button class="tool-icon" data-dir="rtl" data-tip="Right to left" data-desc="Test right-to-left reading direction.">←</button>
+  </div>
+
+  <button id="insight" class="tool-btn" data-tip="Insight highlighting" data-desc="Highlight words carrying contextual or semantic weight.">✦</button>
+
+  <div class="style-controls">
+    <button id="roman" class="style-btn active" data-tip="Roman style" data-desc="Use the normal upright style.">ROMAN</button>
+    <button id="italic" class="style-btn" data-tip="Italic style" data-desc="Use the italic style where supported by the selected typeface.">ITALIC</button>
+  </div>
+
+  <div id="weightAxis" class="axis">
+    <span class="micro">WEIGHT</span><input id="weight" type="range" min="100" max="900" value="400" data-tip="Variable weight" data-desc="Adjust font weight when the selected typeface exposes a usable weight range."><output id="weightValue">400</output>
+  </div>
+
+  <label class="inline-field">TEXT
+    <input id="textEntry" type="text" value="activities leave different traces." data-tip="Text entry" data-desc="Change the specimen text without changing the typographic system.">
+  </label>
+  <div class="score" data-tip="Pairing score" data-desc="A heuristic score based on typeface contrast and pairing structure."><span>PAIR</span><strong id="pairScore">78</strong></div>
+</div>
+
+<section class="editor">
+  <input id="headingInput" class="heading-edit" value="activities leave different traces." aria-label="Heading text">
+  <div id="headingPreview" class="display"></div>
+  <textarea id="bodyInput" class="body-edit" aria-label="Paragraph text">The same instrument can produce a different observation depending on where attention is placed. Context changes the reading; hierarchy changes what arrives first.</textarea>
+  <p id="bodyPreview" class="body-preview"></p>
+  <div id="hierarchy" class="hierarchy" aria-label="H1 through H7 specimen"></div>
+  <div class="info"><span id="metrics"></span><span>WORDS / CONTEXT / RHYTHM</span></div>
+</section>
+
+<section class="font-library" aria-label="Additional fonts and typefaces">
+  <div class="font-library-header">
+    <div>
+      <div class="font-library-title">TYPEFACE LIBRARY</div>
+      <div class="font-library-description">Add local font files or direct font links for the pairing instrument.</div>
+    </div>
+    <div id="fontLibraryCount" class="font-library-count">0 SOURCES</div>
+  </div>
+
+  <div class="font-library-inputs">
+    <div id="fontDropzone" class="font-dropzone" tabindex="0">
+      <div class="drop-icon">↑</div>
+      <div class="drop-copy"><strong>FILES</strong><span>Drop or browse · WOFF / WOFF2 / TTF / OTF</span></div>
+      <button id="browseFontFiles" class="font-library-button" type="button" data-tip="Browse font files" data-desc="Add one or more local font files to the typeface library.">BROWSE FILES →</button>
+      <input id="fontFiles" type="file" accept=".woff,.woff2,.ttf,.otf" multiple hidden>
+    </div>
+
+    <div class="font-linkbox">
+      <div class="drop-copy"><strong>LINK</strong><span>Direct URL to a WOFF / WOFF2 / TTF / OTF file</span></div>
+      <div class="font-link-controls">
+        <input id="fontUrl" type="url" placeholder="https://example.com/typeface.woff2" aria-label="Direct font URL" data-tip="Font link" data-desc="Load a directly accessible web font. The remote host must permit browser cross-origin access.">
+        <button id="addFontUrl" class="font-library-button" type="button" data-tip="Add font link" data-desc="Add a remote font source to the typeface library.">ADD LINK →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="font-sources">
+    <div class="font-sources-head"><span>ADDED SOURCES</span><span id="fontLibraryStatus">NO ADDITIONAL TYPEFACES</span></div>
+    <div id="fontSourceList" class="font-source-list"><div class="font-source-empty">Added fonts will appear here and become selectable in DISPLAY and TEXT.</div></div>
+  </div>
+</section>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+
+  const levelSizes = {H1:58,H2:48,H3:40,H4:32,H5:27,H6:22,H7:16};
+  const fallbackFonts = [
+    {name:"Fira Code",category:"mono",variable:true,italic:false},
+    {name:"Overpass Mono",category:"mono",variable:true,italic:false},
+    {name:"Xanh Mono",category:"serif",variable:false,italic:false},
+    {name:"Arial",category:"sans",variable:false,italic:false},
+    {name:"Helvetica",category:"sans",variable:false,italic:false},
+    {name:"Georgia",category:"serif",variable:false,italic:false},
+    {name:"Times New Roman",category:"serif",variable:false,italic:false},
+    {name:"Courier New",category:"mono",variable:false,italic:false},
+    {name:"Consolas",category:"mono",variable:false,italic:false},
+    {name:"Verdana",category:"sans",variable:false,italic:false},
+    {name:"Trebuchet MS",category:"sans",variable:false,italic:false},
+    {name:"Impact",category:"display",variable:false,italic:false}
+  ];
+
+  const state = {
+    level:"H1", display:"Fira Code", body:"Xanh Mono",
+    kern:-30, lead:1, linked:true, context:false, hyphen:false,
+    align:"left", dir:"ltr", insight:false, style:"normal", weight:400,
+    filter:"all"
+  };
+
+  let catalogue = fallbackFonts.slice();
+  let library = [];
+
+  function escapeHtml(v){
+    return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+  }
+
+  function cssFont(name){ return `"${String(name).replace(/"/g,"")}", monospace`; }
+
+  function classify(name){
+    const n=String(name).toLowerCase();
+    if(/mono|code|consolas|courier|terminal/.test(n)) return "mono";
+    if(/serif|times|garamond|baskerville|bodoni|didot|georgia|cambria/.test(n)) return "serif";
+    if(/display|poster|headline|impact|blackletter|cooper/.test(n)) return "display";
+    return "sans";
+  }
+
+  function currentFonts(){
+    const custom = library.map(x=>({
+      name:x.name, category:classify(x.name), variable:false,
+      italic:x.style==="italic"
+    }));
+    const map = new Map();
+    [...catalogue,...custom].forEach(f => map.set(f.name,f));
+    return [...map.values()];
+  }
+
+  function addSelectorOption(select,name){
+    if(!select) return;
+    if([...select.options].some(o=>o.value===name)) return;
+    const opt=document.createElement("option"); opt.value=name; opt.textContent=name;
+    select.appendChild(opt);
+  }
+
+  function populateSelectors(){
+    const ds=currentFonts();
+    [$("#displayFont"),$("#bodyFont")].forEach(select=>{
+      if(!select)return;
+      ds.forEach(f=>addSelectorOption(select,f.name));
+    });
+    $("#displayFont").value=state.display;
+    $("#bodyFont").value=state.body;
+  }
+
+  function filteredFonts(){
+    const q=$("#fontSearch").value.trim().toLowerCase();
+    return currentFonts().filter(f =>
+      (state.filter==="all" || f.category===state.filter) &&
+      (!q || f.name.toLowerCase().includes(q))
+    );
+  }
+
+  function renderFontResults(){
+    const box=$("#fontResults");
+    const q=$("#fontSearch").value.trim();
+    if(!q){box.classList.remove("open");box.innerHTML="";return;}
+    const results=filteredFonts().slice(0,100);
+    box.innerHTML=results.length ? results.map(f=>`
+      <div class="font-result" data-font="${escapeHtml(f.name)}">
+        <div class="font-result-name" style="font-family:${cssFont(f.name)}">${escapeHtml(f.name)}</div>
+        <div class="font-result-meta">${f.category}${f.variable?" · variable":""}${f.italic?" · italic":" · roman"}</div>
+      </div>`).join("") :
+      `<div class="font-result"><div class="font-result-meta">No matching fonts.</div></div>`;
+    box.classList.add("open");
+    box.querySelectorAll("[data-font]").forEach(item=>{
+      item.addEventListener("click",()=>{
+        state.display=item.dataset.font;
+        $("#displayFont").value=state.display;
+        box.classList.remove("open");
+        $("#fontSearch").value="";
+        syncStyleMetadata();
+        render();
+      });
+    });
+  }
+
+  function insightText(text){
+    const safe=escapeHtml(text);
+    if(!state.insight)return safe;
+    return safe.replace(
+      /\b(instrument|observation|attention|context|hierarchy|reading|futures|signal|bias)\b/gi,
+      '<mark class="insight-mark">$1</mark>'
+    );
+  }
+
+  function pairScore(){
+    const a=state.display.toLowerCase(), b=state.body.toLowerCase();
+    let s = a===b ? 55 : 75;
+    if(classify(a)!==classify(b)) s+=12;
+    if((/mono|code/.test(a)) && (/mono|code/.test(b))) s+=6;
+    if(state.kern<0) s+=2;
+    return Math.max(0,Math.min(100,s));
+  }
+
+  function render(){
+    const custom=$("#textEntry").value || "activities leave different traces.";
+    $("#headingInput").value=custom;
+
+    const h=$("#headingPreview");
+    h.textContent=custom;
+    h.style.fontFamily=cssFont(state.display);
+    h.style.fontSize=levelSizes[state.level]+"px";
+    h.style.letterSpacing=(state.kern/10)+"px";
+    h.style.lineHeight=state.lead;
+    h.style.fontWeight=state.weight;
+    h.style.fontStyle=state.style;
+    h.style.textAlign=state.align;
+    h.style.direction=state.dir;
+
+    const p=$("#bodyPreview");
+    p.innerHTML=insightText($("#bodyInput").value || "");
+    p.style.fontFamily=cssFont(state.body);
+    p.style.lineHeight=state.lead;
+    p.style.textAlign=state.align;
+    p.style.direction=state.dir;
+    p.style.hyphens=state.hyphen ? "auto" : "none";
+    p.classList.toggle("context-tight",state.context);
+    p.style.fontWeight=state.weight;
+    p.style.fontStyle=state.style;
+
+    $("#hierarchy").innerHTML=Object.entries(levelSizes).map(([level,size])=>`
+      <article class="h-card" data-card="${level}">
+        <div class="h-label">${level}</div>
+        <p class="h-text ${level.toLowerCase()}">${insightText(custom)}</p>
+      </article>
+    `).join("");
+
+    $$(".h-text").forEach(node=>{
+      node.style.fontFamily=cssFont(state.display);
+      node.style.fontSize=levelSizes[node.closest(".h-card").dataset.card]+"px";
+      node.style.letterSpacing=(state.kern/10)+"px";
+      node.style.lineHeight=state.lead;
+      node.style.textAlign=state.align;
+      node.style.direction=state.dir;
+      node.style.fontWeight=state.weight;
+      node.style.fontStyle=state.style;
+    });
+
+    $$(".h-card").forEach(card=>{
+      card.style.opacity=card.dataset.card===state.level ? "1" : ".52";
+    });
+
+    $("#kernValue").textContent=(state.kern/10).toFixed(1);
+    $("#leadValue").textContent=state.lead.toFixed(2);
+    $("#pairScore").textContent=pairScore();
+    $("#pairStatus").textContent=`${state.display} × ${state.body}`;
+    $("#metrics").textContent=`${state.level} · ${levelSizes[state.level]}px · ${(state.kern/10).toFixed(1)}px tracking · ${state.lead.toFixed(2)} leading`;
+
+    $("#link").classList.toggle("active",state.linked);
+    $("#context").classList.toggle("active",state.context);
+    $("#hyphen").classList.toggle("active",state.hyphen);
+    $("#insight").classList.toggle("active",state.insight);
+    $("#roman").classList.toggle("active",state.style==="normal");
+    $("#italic").classList.toggle("active",state.style==="italic");
+    $("#weightAxis").classList.toggle("visible",isVariable(state.display));
+
+    $$(".tool-icon[data-align]").forEach(b=>b.classList.toggle("active",b.dataset.align===state.align));
+    $$(".tool-icon[data-dir]").forEach(b=>b.classList.toggle("active",b.dataset.dir===state.dir));
+    $("#fontStatus").textContent=`${state.display} × ${state.body} · ${currentFonts().length} fonts`;
+  }
+
+  function isVariable(fontName){
+    const found=currentFonts().find(f=>f.name===fontName);
+    return !!found?.variable;
+  }
+
+  function syncStyleMetadata(){
+    const found=currentFonts().find(f=>f.name===state.display);
+    if(found?.variable){
+      $("#weight").value=state.weight;
+    }
+    $("#weightValue").textContent=state.weight;
+  }
+
+  function bindCore(){
+    $$("[data-level]").forEach(btn=>btn.addEventListener("click",()=>{
+      state.level=btn.dataset.level;
+      $$("[data-level]").forEach(x=>x.classList.toggle("active",x===btn));
+      render();
+      document.querySelector(`[data-card="${state.level}"]`)?.scrollIntoView({block:"nearest",inline:"nearest"});
+    }));
+
+    $("#displayFont").addEventListener("change",e=>{state.display=e.target.value;syncStyleMetadata();render()});
+    $("#bodyFont").addEventListener("change",e=>{state.body=e.target.value;render()});
+
+    $("#pairMode").addEventListener("change",e=>{
+      const mode=e.target.value;
+      if(mode==="contrast"){state.display="Overpass Mono";state.body="Xanh Mono";}
+      if(mode==="mono"){state.display="Fira Code";state.body="Overpass Mono";}
+      if(mode==="same"){state.body=state.display;}
+      populateSelectors(); render();
+    });
+
+    $("#fontSearch").addEventListener("input",renderFontResults);
+    $("#fontSearch").addEventListener("focus",renderFontResults);
+    document.addEventListener("click",e=>{
+      if(!e.target.closest(".search-wrap"))$("#fontResults").classList.remove("open");
+    });
+
+    $$(".filter-btn").forEach(btn=>btn.addEventListener("click",()=>{
+      state.filter=btn.dataset.filter;
+      $$(".filter-btn").forEach(x=>x.classList.toggle("active",x===btn));
+      renderFontResults();
+    }));
+
+    $("#kern").addEventListener("input",e=>{
+      state.kern=Number(e.target.value);
+      if(state.linked){
+        state.lead=Math.max(.7,Math.min(2.2,1+state.kern/100));
+        $("#lead").value=state.lead;
+      }
+      render();
+    });
+
+    $("#lead").addEventListener("input",e=>{
+      state.lead=Number(e.target.value);
+      if(state.linked){
+        state.kern=Math.max(-80,Math.min(120,(state.lead-1)*100));
+        $("#kern").value=state.kern;
+      }
+      render();
+    });
+
+    $("#link").addEventListener("click",()=>{state.linked=!state.linked;render()});
+    $("#context").addEventListener("click",()=>{state.context=!state.context;render()});
+    $("#hyphen").addEventListener("click",()=>{state.hyphen=!state.hyphen;render()});
+    $("#insight").addEventListener("click",()=>{state.insight=!state.insight;render()});
+
+    $$("[data-align]").forEach(btn=>btn.addEventListener("click",()=>{
+      state.align=btn.dataset.align;render();
+    }));
+
+    $$("[data-dir]").forEach(btn=>btn.addEventListener("click",()=>{
+      state.dir=btn.dataset.dir;render();
+    }));
+
+    $("#roman").addEventListener("click",()=>{state.style="normal";render()});
+    $("#italic").addEventListener("click",()=>{state.style="italic";render()});
+
+    $("#weight").addEventListener("input",e=>{
+      state.weight=Number(e.target.value);$("#weightValue").textContent=state.weight;render();
+    });
+
+    $("#textEntry").addEventListener("input",render);
+    $("#headingInput").addEventListener("input",e=>{$("#textEntry").value=e.target.value;render()});
+    $("#bodyInput").addEventListener("input",render);
+  }
+
+  function bindTooltips(){
+    const tip=$("#controlTip"), name=tip.querySelector(".tip-name"), desc=tip.querySelector(".tip-desc");
+    let active=null;
+    function move(e){
+      if(!active)return;
+      const gap=14,w=245,h=tip.offsetHeight||70;
+      let x=e.clientX+gap,y=e.clientY+gap;
+      if(x+w>innerWidth-8)x=e.clientX-w-gap;
+      if(y+h>innerHeight-8)y=e.clientY-h-gap;
+      tip.style.left=Math.max(8,x)+"px";tip.style.top=Math.max(8,y)+"px";
+    }
+    $$("[data-tip]").forEach(el=>{
+      const show=e=>{
+        active=el;name.textContent=el.dataset.tip;desc.textContent=el.dataset.desc||"";
+        tip.classList.add("show");move(e);
+      };
+      el.addEventListener("mouseenter",show);
+      el.addEventListener("mousemove",move);
+      el.addEventListener("mouseleave",()=>{active=null;tip.classList.remove("show")});
+      el.addEventListener("focus",show);
+      el.addEventListener("blur",()=>{active=null;tip.classList.remove("show")});
+    });
+  }
+
+  async function loadNativeFonts(){
+    if(!window.nativeFonts?.getFonts)return;
+    try{
+      const raw=await window.nativeFonts.getFonts();
+      if(Array.isArray(raw) && raw.length){
+        catalogue=raw.map(item=>{
+          if(typeof item==="string"){
+            return {name:item,category:classify(item),variable:/variable/i.test(item),italic:/italic/i.test(item)};
+          }
+          return {
+            name:item.name,category:item.category||classify(item.name),variable:!!item.variable,italic:!!item.italic
+          };
+        }).filter(x=>x.name);
+        populateSelectors();
+        render();
+      }
+    }catch(err){console.warn("Native font catalogue unavailable",err)}
+  }
+
+  const FONT_CACHE="type-pairing-font-library-v6";
+  const FONT_META="type-pairing-font-meta-v6";
+
+  function readMeta(){
+    try{return JSON.parse(localStorage.getItem(FONT_META)||"[]")}catch{return []}
+  }
+
+  function saveMeta(){
+    try{localStorage.setItem(FONT_META,JSON.stringify(library))}catch{}
+  }
+
+  async function cachePut(key,blob,type){
+    if(!("caches" in window))return false;
+    try{
+      const cache=await caches.open(FONT_CACHE);
+      await cache.put(new Request(key),new Response(blob,{headers:{"Content-Type":type||"application/octet-stream"}}));
+      return true;
+    }catch(err){console.warn("Cache Storage write failed",err);return false}
+  }
+
+  async function cacheGet(key){
+    if(!("caches" in window))return null;
+    try{
+      const cache=await caches.open(FONT_CACHE);
+      const response=await cache.match(new Request(key));
+      return response?await response.blob():null;
+    }catch{return null}
+  }
+
+  async function installBlob(blob,name,style="normal",weight="400"){
+    const objectUrl=URL.createObjectURL(blob);
+    try{
+      const face=new FontFace(name,`url(${objectUrl})`,{style,weight});
+      await face.load();document.fonts.add(face);return true;
+    }finally{URL.revokeObjectURL(objectUrl)}
+  }
+
+  function renderLibrary(){
+    $("#fontLibraryCount").textContent=`${library.length} SOURCE${library.length===1?"":"S"}`;
+    $("#fontLibraryStatus").textContent=library.length?`${library.length} SOURCE${library.length===1?"":"S"} READY`:"NO ADDITIONAL TYPEFACES";
+    const box=$("#fontSourceList");
+    if(!library.length){
+      box.innerHTML='<div class="font-source-empty" style="padding:10px;font-size:7px;color:var(--muted)">Added fonts will appear here and become selectable in DISPLAY and TEXT.</div>';
+      return;
+    }
+    box.innerHTML=library.map(item=>`
+      <div class="font-source">
+        <div class="font-source-main">
+          <div class="font-source-name" style="font-family:${cssFont(item.name)}">${escapeHtml(item.name)}</div>
+          <div class="font-source-preview" style="font-family:${cssFont(item.name)}">Ag 0123 — The quick brown fox.</div>
+          <div class="font-source-meta">${escapeHtml(item.sourceLabel||item.fileName||item.url||"font")} · ${item.cached?"cached":"loaded"}</div>
+        </div>
+        <button class="font-remove" type="button" data-remove="${escapeHtml(item.id)}" aria-label="Remove ${escapeHtml(item.name)}">×</button>
+      </div>
+    `).join("");
+    box.querySelectorAll("[data-remove]").forEach(btn=>btn.addEventListener("click",()=>{
+      library=library.filter(x=>x.id!==btn.dataset.remove);
+      saveMeta();renderLibrary();populateSelectors();render();
+    }));
+  }
+
+  function addCustomSelector(name){
+    addSelectorOption($("#displayFont"),name);
+    addSelectorOption($("#bodyFont"),name);
+  }
+
+  async function addFontFile(file){
+    const ext=(file.name.split(".").pop()||"").toLowerCase();
+    if(!["woff","woff2","ttf","otf"].includes(ext)){renderStatusMessage("UNSUPPORTED FONT FORMAT");return}
+    const base=file.name.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ").trim()||"Uploaded Typeface";
+    let name=base,i=2;
+    while(library.some(x=>x.name===name))name=`${base} ${i++}`;
+    const style=/italic/i.test(file.name)?"italic":"normal";
+    const key=`${location.origin}/__type_pairing_fonts__/${encodeURIComponent(name)}.${ext}`;
+    try{
+      await installBlob(file,name,style,"100 900");
+      const cached=await cachePut(key,file,file.type||`font/${ext}`);
+      library.push({
+        id:(crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random())),
+        name,type:"file",fileName:file.name,format:ext,style,weight:"400",
+        url:key,sourceLabel:file.name,cached
+      });
+      addCustomSelector(name);$("#displayFont").value=name;
+      saveMeta();renderLibrary();render();renderStatusMessage(`${name} ADDED${cached?" · CACHED":""}`);
+    }catch(err){
+      console.error(err);renderStatusMessage("FONT FILE COULD NOT BE LOADED");
+    }
+  }
+
+  async function addFontUrl(raw){
+    const url=String(raw||"").trim();
+    if(!/^https?:\/\//i.test(url)){renderStatusMessage("USE A DIRECT HTTP(S) FONT URL");return}
+    try{
+      renderStatusMessage("LOADING FONT LINK…");
+      const response=await fetch(url,{mode:"cors"});
+      if(!response.ok)throw new Error(`HTTP ${response.status}`);
+      const blob=await response.blob();
+      const rawName=decodeURIComponent(url.split(/[?#]/)[0].split("/").pop()||"Web Typeface").replace(/\.[^.]+$/,"").replace(/[_-]+/g," ").trim();
+      let name=rawName||"Web Typeface",i=2;
+      while(library.some(x=>x.name===name))name=`${rawName} ${i++}`;
+      const extGuess=(url.split(/[?#]/)[0].split(".").pop()||"").toLowerCase();
+      const ext=["woff","woff2","ttf","otf"].includes(extGuess)?extGuess:(blob.type.includes("woff2")?"woff2":blob.type.includes("woff")?"woff":"otf");
+      await installBlob(blob,name,"normal","100 900");
+      const key=`${location.origin}/__type_pairing_remote__/${encodeURIComponent(name)}.${ext}`;
+      const cached=await cachePut(key,blob,blob.type||`font/${ext}`);
+      library.push({
+        id:(crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random())),
+        name,type:"url",url,format:ext,style:"normal",weight:"400",cacheUrl:key,sourceLabel:url,cached
+      });
+      addCustomSelector(name);$("#displayFont").value=name;$("#fontUrl").value="";
+      saveMeta();renderLibrary();render();renderStatusMessage(`${name} ADDED${cached?" · CACHED":""}`);
+    }catch(err){
+      console.error(err);renderStatusMessage("LINK FAILED · DIRECT FONT URL + CORS REQUIRED");
+    }
+  }
+
+  function renderStatusMessage(msg){
+    $("#fontLibraryStatus").textContent=String(msg).toUpperCase();
+  }
+
+  async function restoreLibrary(){
+    library=readMeta().filter(x=>x && x.name);
+    renderLibrary();populateSelectors();
+    for(const item of library){
+      const key=item.cacheUrl||item.url;
+      const blob=await cacheGet(key);
+      if(!blob)continue;
+      try{
+        await installBlob(blob,item.name,item.style||"normal",item.weight||"400");
+        addCustomSelector(item.name);
+      }catch(err){console.warn("Could not restore cached font",item.name,err)}
+    }
+    renderLibrary();render();
+  }
+
+  function bindLibrary(){
+    const input=$("#fontFiles"),browse=$("#browseFontFiles"),drop=$("#fontDropzone"),url=$("#fontUrl"),addUrl=$("#addFontUrl");
+    browse.addEventListener("click",()=>input.click());
+    input.addEventListener("change",async e=>{
+      for(const file of [...e.target.files||[]])await addFontFile(file);
+      input.value="";
+    });
+    ["dragenter","dragover"].forEach(type=>drop.addEventListener(type,e=>{
+      e.preventDefault();drop.classList.add("dragover");
+    }));
+    ["dragleave","drop"].forEach(type=>drop.addEventListener(type,e=>{
+      e.preventDefault();drop.classList.remove("dragover");
+    }));
+    drop.addEventListener("drop",async e=>{
+      for(const file of [...e.dataTransfer.files||[]])await addFontFile(file);
+    });
+    drop.addEventListener("keydown",e=>{
+      if(e.key==="Enter"||e.key===" "){e.preventDefault();input.click()}
+    });
+    addUrl.addEventListener("click",()=>addFontUrl(url.value));
+    url.addEventListener("keydown",e=>{if(e.key==="Enter")addFontUrl(url.value)});
+  }
+
+  async function init(){
+    bindCore();
+    bindTooltips();
+    bindLibrary();
+    populateSelectors();
+    render();
+    await restoreLibrary();
+    await loadNativeFonts();
+    syncStyleMetadata();
+    render();
+  }
+
+  init();
+})();
+</script>
+
+<script>
+(() => {
+  const root=document.documentElement;
+  const toggle=document.getElementById('themeToggle');
+  if(!toggle)return;
+  let theme='dark';
+  try{theme=localStorage.getItem('type-pairing-theme')||'dark'}catch{}
+  function apply(){
+    root.setAttribute('data-theme',theme);
+    const light=theme==='light';
+    toggle.setAttribute('aria-pressed',String(light));
+    toggle.setAttribute('aria-label',light?'Switch to dark mode':'Switch to light mode');
+  }
+  toggle.addEventListener('click',()=>{
+    theme=theme==='dark'?'light':'dark';
+    try{localStorage.setItem('type-pairing-theme',theme)}catch{}
+    apply();
+  });
+  apply();
+})();
+</script>
+</body>
+</html>
