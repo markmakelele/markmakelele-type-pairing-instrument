@@ -5,9 +5,21 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Type Pairing Instrument — Combined</title>
 <style>
-@font-face{font-family:FiraCode;src:url("fonts/FiraCode-VariableFont_wght.ttf") format("truetype");font-weight:300 700}
-@font-face{font-family:OverpassMono;src:url("fonts/OverpassMono-VariableFont_wght.ttf") format("truetype");font-weight:300 700}
-@font-face{font-family:XanhMono;src:url("fonts/XanhMono-Regular.ttf") format("truetype");font-weight:400}
+/* Bundled typefaces from the supplied archives. */
+@font-face{font-family:"Nohemi";src:url("fonts/Nohemi/Nohemi-Thin.ttf") format("truetype");font-weight:100;font-style:normal;font-display:swap}
+@font-face{font-family:"Nohemi";src:url("fonts/Nohemi/Nohemi-ExtraLight.ttf") format("truetype");font-weight:200;font-style:normal;font-display:swap}
+@font-face{font-family:"Nohemi";src:url("fonts/Nohemi/Nohemi-Light.ttf") format("truetype");font-weight:300;font-style:normal;font-display:swap}
+@font-face{font-family:"Nohemi";src:url("fonts/Nohemi/Nohemi-Regular.ttf") format("truetype");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Nohemi";src:url("fonts/Nohemi/Nohemi-Medium.ttf") format("truetype");font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:"Nohemi";src:url("fonts/Nohemi/Nohemi-SemiBold.ttf") format("truetype");font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:"Nohemi";src:url("fonts/Nohemi/Nohemi-Bold.ttf") format("truetype");font-weight:700;font-style:normal;font-display:swap}
+@font-face{font-family:"Nohemi";src:url("fonts/Nohemi/Nohemi-ExtraBold.ttf") format("truetype");font-weight:800;font-style:normal;font-display:swap}
+@font-face{font-family:"Nohemi";src:url("fonts/Nohemi/Nohemi-Black.ttf") format("truetype");font-weight:900;font-style:normal;font-display:swap}
+@font-face{font-family:"Blubird Text";src:url("fonts/Blubird/Blubird-RegularText.otf") format("opentype");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Blubird Text";src:url("fonts/Blubird/Blubird-RegularTextItalic.otf") format("opentype");font-weight:400;font-style:italic;font-display:swap}
+@font-face{font-family:"Blubird Display";src:url("fonts/Blubird/Blubird-RegularDisplay.otf") format("opentype");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Blubird Display";src:url("fonts/Blubird/Blubird-RegularDisplayItalic.otf") format("opentype");font-weight:400;font-style:italic;font-display:swap}
+@font-face{font-family:"Strichpunkt Sans";src:url("fonts/Strichpunkt%20Sans/StrichpunktSans-Variable.ttf") format("truetype");font-weight:100 900;font-stretch:50% 200%;font-style:normal;font-display:swap}
 :root{
  --bg:#070707;--fg:#f1eee6;--muted:#929088;--line:#4d4b46;--line2:#292825;
  --active:#f1eee6;--panel:#0d0d0c;--panel2:#111110;
@@ -304,6 +316,10 @@ body{transition:background-color .16s ease,color .16s ease}
     {name:"Verdana",category:"sans",variable:false,italic:false},
     {name:"Trebuchet MS",category:"sans",variable:false,italic:false},
     {name:"Impact",category:"display",variable:false,italic:false}
+    ,{name:"Nohemi",category:"sans",variable:false,italic:false}
+    ,{name:"Blubird Text",category:"serif",variable:false,italic:true}
+    ,{name:"Blubird Display",category:"display",variable:false,italic:true}
+    ,{name:"Strichpunkt Sans",category:"sans",variable:true,italic:false}
   ];
 
   const state = {
@@ -324,6 +340,8 @@ body{transition:background-color .16s ease,color .16s ease}
 
   function classify(name){
     const n=String(name).toLowerCase();
+    if(n.includes("blubird display")) return "display";
+    if(n.includes("blubird")) return "serif";
     if(/mono|code|consolas|courier|terminal/.test(n)) return "mono";
     if(/serif|times|garamond|baskerville|bodoni|didot|georgia|cambria/.test(n)) return "serif";
     if(/display|poster|headline|impact|blackletter|cooper/.test(n)) return "display";
